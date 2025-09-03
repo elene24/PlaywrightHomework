@@ -1,9 +1,8 @@
-package ge.tbc.testautomation;
+package ge.tbc.testautomation.test;
 
 import com.microsoft.playwright.*;
 import ge.tbc.testautomation.data.Constants;
 import ge.tbc.testautomation.steps.MainPageSteps;
-import org.testng.Assert;
 import org.testng.annotations.*;
 
 import java.util.Arrays;

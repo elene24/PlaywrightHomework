@@ -30,7 +30,7 @@ public class MainPageSteps {
         clickAddToWishlist();
         validateUnauthorizedWishlistMessage();
         clickCreateAccount();
-        registerNewUser("Elene", "Margalitadze", "elene765@example.com", "Margalitadze8663$");
+        registerNewUser("Elene", "Margalitadze", "elene667@example.com", "Margalitadze8663$");
         validateWelcomeMessage("Elene", "Margalitadze");
     }
 

@@ -1,4 +1,4 @@
-package ge.tbc.testautomation;
+package ge.tbc.testautomation.test;
 
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.assertions.PlaywrightAssertions;

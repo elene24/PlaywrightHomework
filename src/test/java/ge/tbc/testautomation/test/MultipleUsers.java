@@ -1,4 +1,4 @@
-package ge.tbc.testautomation;
+package ge.tbc.testautomation.test;
 
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.assertions.PlaywrightAssertions;
@@ -7,7 +7,6 @@ import com.microsoft.playwright.options.WaitForSelectorState;
 import org.testng.annotations.*;
 
 import java.util.Arrays;
-import java.util.UUID;
 
 public class MultipleUsers {
 
