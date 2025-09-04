@@ -14,7 +14,7 @@ public class purchaseItem extends BaseTest {
     public void AddToCartTest(){
         //mainpagetest.saveToFavsUnauthorized();
         magentosteps.purchaseItem();
-        System.out.println("Allure conflict");
+        System.out.println("BranchA");
 
     }
 

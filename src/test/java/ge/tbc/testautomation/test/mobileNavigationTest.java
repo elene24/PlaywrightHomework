@@ -23,7 +23,7 @@ public class mobileNavigationTest extends BaseTest {
         magentosteps.openBurgerMenu();
         magentosteps.validateAccountLinks();
         magentosteps.validateMainMenuLinks();
-        System.out.println("Allure conflict");
+        System.out.println("BranchA");
 
     }
 }

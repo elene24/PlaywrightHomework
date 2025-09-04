@@ -13,7 +13,7 @@ public class ReviewNumberTest extends BaseTest {
     @Severity(SeverityLevel.MINOR)    public void reviewNumberTest(){
         magentosteps.findRandomOffer();
         itemspagesteps.ValidateReviewNumber(constants.Reviews_String);
-        System.out.println("Allure conflict");
+        System.out.println("BranchA");
 
     }
 }
