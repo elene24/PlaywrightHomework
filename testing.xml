@@ -1,0 +1,16 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="MagentoAutomationSuite">
+    <test name="E2ETests">
+        <classes>
+            <class name="ge.tbc.testautomation.test.E2Etests"/>
+            <class name="ge.tbc.testautomation.test.E2Etests2"/>
+            <class name="ge.tbc.testautomation.test.mobileNavigationTest"/>
+            <class name="ge.tbc.testautomation.test.MultipleUsers"/>
+            <class name="ge.tbc.testautomation.test.Playwright2Tests"/>
+            <class name="ge.tbc.testautomation.test.PlayWrightIntro"/>
+            <class name="ge.tbc.testautomation.test.purchaseItem"/>
+            <class name="ge.tbc.testautomation.test.ReviewNumberTest"/>
+
+        </classes>
+    </test>
+</suite>

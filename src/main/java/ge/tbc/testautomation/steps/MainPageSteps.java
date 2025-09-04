@@ -5,6 +5,7 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import ge.tbc.testautomation.pages.MainPage;
 import org.testng.Assert;
+import io.qameta.allure.Step;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,13 +19,10 @@ public class MainPageSteps {
 
     public MainPageSteps(Page page) {
         this.page = page;
-        this.mainpage = new MainPage();
+        this.mainpage = new MainPage(page);
     }
 
-
-
-
-    // Final adding to favourites while being unauthoried
+    @Step("Save a product to favorites while being unauthorized")
     public void saveToFavsUnauthorized() {
         openRandomProduct();
         clickAddToWishlist();
@@ -34,8 +32,7 @@ public class MainPageSteps {
         validateWelcomeMessage("Elene", "Margalitadze");
     }
 
-
-    // final out of stock test
+    @Step("Check behavior when product is out of stock")
     public void outOfStock() {
         openFirstHotSellingItem();
         selectFirstSizeAndColor();
@@ -44,7 +41,8 @@ public class MainPageSteps {
         openCart();
         validateCartEmpty();
     }
-//final adding random products to cart
+
+    @Step("Add a random product to cart")
     public void addRandomProductToCart() {
         searchFor("All");
         openRandomProduct();
@@ -54,7 +52,7 @@ public class MainPageSteps {
         validateProductName();
     }
 
-//final deleting an item from cart
+    @Step("Delete the first item from the cart")
     public void deleteFromCart() {
         openMiniCart();
         String name = getFirstCartItemName();
@@ -62,73 +60,77 @@ public class MainPageSteps {
         verifyProductRemoved(name);
     }
 
-
+    @Step("Pick 3 random hot-selling items")
     public List<Locator> pickRandomItems() {
         List<Locator> chosenItems = new ArrayList<>();
-        List<Locator> allItems = page.locator(MainPage.HOT_SELLING_ITEMS).all();
+        List<Locator> allItems = mainpage.HOT_SELLING_ITEMS.all();
         Collections.shuffle(allItems, new Random());
 
         for (Locator item : allItems) {
-            if (item.locator(MainPage.HOT_SELLING_ITEM_COLORS).isVisible()) {
-                chosenItems.add(item.locator(MainPage.HOT_SELLING_ITEM_COLORS));
+            if (item.locator(mainpage.HOT_SELLING_ITEM_COLORS).isVisible()) {
+                chosenItems.add(item.locator(mainpage.HOT_SELLING_ITEM_COLORS));
             }
             if (chosenItems.size() == 3) break;
         }
-
         return chosenItems;
     }
 
+    @Step("Validate colors switch correctly for chosen items")
     public void validateColors(List<Locator> chosen) {
         for (Locator item : chosen) {
-            item.locator(MainPage.HOT_SELLING_ITEM_COLORS).all().forEach(color -> {
+            item.locator(mainpage.HOT_SELLING_ITEM_COLORS).all().forEach(color -> {
                 color.click();
                 String colorLabel = color.getAttribute("aria-label");
                 String imgSrc = item.locator("img[@class='product-image-photo']").getAttribute("src");
-                Assert.assertTrue(imgSrc.contains(colorLabel), "images don't switch correctly");
+                Assert.assertTrue(imgSrc.contains(colorLabel), "Images don't switch correctly");
             });
         }
     }
 
+    @Step("Open the first hot-selling item")
     public Locator openFirstHotSellingItem() {
-        Locator firstItem = page.locator(MainPage.HOT_SELLING_ITEMS).first();
+        Locator firstItem = mainpage.HOT_SELLING_ITEMS.first();
         firstItem.scrollIntoViewIfNeeded();
         firstItem.hover();
         firstItem.click();
         return firstItem;
     }
 
+    @Step("Select the first size and color available")
     public void selectFirstSizeAndColor() {
-        List<Locator> sizes = page.locator(MainPage.SIZE_SWATCH).all();
-        List<Locator> colors = page.locator(MainPage.COLOR_SWATCH).all();
+        List<Locator> sizes = mainpage.SIZE_SWATCH.all();
+        List<Locator> colors = mainpage.COLOR_SWATCH.all();
         if (!sizes.isEmpty()) sizes.get(0).click();
         if (!colors.isEmpty()) colors.get(0).click();
     }
 
+    @Step("Click Add to Cart")
     public void clickAddToCart() {
-        Locator addButton = page.locator(MainPage.ADD_TO_CART_BUTTON);
+        Locator addButton = mainpage.ADD_TO_CART_BUTTON;
         addButton.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
         addButton.click();
     }
 
+    @Step("Validate Out of Stock message is displayed")
     public void validateOutOfStockMessage() {
-        String message = page.locator(MainPage.OUT_OF_STOCK_ERROR).textContent().trim();
+        String message = mainpage.OUT_OF_STOCK_ERROR.textContent().trim();
         Assert.assertEquals(message, MainPage.OUT_OF_STOCK_MESSAGE);
     }
 
+    @Step("Open the mini cart")
     public void openCart() {
-        page.locator(MainPage.MINI_CART_BUTTON).click();
+        mainpage.MINI_CART_BUTTON.click();
     }
 
+    @Step("Validate that cart is empty")
     public void validateCartEmpty() {
-        String cartText = page.locator(MainPage.CART_EMPTY_TEXT).textContent().trim();
+        String cartText = mainpage.CART_EMPTY_TEXT.textContent().trim();
         Assert.assertEquals(cartText, MainPage.CART_EMPTY_TEXT_VALUE);
     }
 
-
-
-
+    @Step("Open a random product")
     public Locator openRandomProduct() {
-        List<Locator> allItems = page.locator(MainPage.HOT_SELLING_ITEMS).all();
+        List<Locator> allItems = mainpage.HOT_SELLING_ITEMS.all();
         Collections.shuffle(allItems, new Random());
         Locator chosenProduct = allItems.get(0);
         chosenProduct.scrollIntoViewIfNeeded();
@@ -137,52 +139,57 @@ public class MainPageSteps {
         return chosenProduct;
     }
 
+    @Step("Click Add to Wishlist")
     public void clickAddToWishlist() {
-        page.waitForSelector(MainPage.ADD_TO_WISHLIST).click();
+        mainpage.ADD_TO_WISHLIST.click();
     }
 
+    @Step("Validate unauthorized wishlist message")
     public void validateUnauthorizedWishlistMessage() {
-        Locator alertMessage = page.locator(MainPage.UNAUTHORIZED_WISHLIST_MESSAGE);
+        Locator alertMessage = mainpage.UNAUTHORIZED_WISHLIST_MESSAGE;
         alertMessage.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(15000));
         String mess = alertMessage.textContent().trim();
         Assert.assertEquals(mess, MainPage.UNAUTHORIZED_WISHLIST_TEXT);
     }
 
+    @Step("Click Create Account")
     public void clickCreateAccount() {
-        Locator createAccount = page.locator(MainPage.CREATE_ACCOUNT_BUTTON);
+        Locator createAccount = mainpage.CREATE_ACCOUNT_BUTTON;
         createAccount.scrollIntoViewIfNeeded();
         createAccount.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(15000));
         createAccount.click();
     }
 
+    @Step("Register a new user firstName lastName with email")
     public void registerNewUser(String firstName, String lastName, String email, String password) {
-        page.locator(MainPage.FIRST_NAME_INPUT).fill(firstName);
-        page.locator(MainPage.LAST_NAME_INPUT).fill(lastName);
-        page.locator(MainPage.EMAIL_INPUT).fill(email);
-        page.locator(MainPage.PASSWORD_INPUT).fill(password);
-        page.locator(MainPage.PASSWORD_CONFIRM_INPUT).fill(password);
-        page.locator(MainPage.CREATE_ACCOUNT_FORM_BUTTON).click();
+        mainpage.FIRST_NAME_INPUT.fill(firstName);
+        mainpage.LAST_NAME_INPUT.fill(lastName);
+        mainpage.EMAIL_INPUT.fill(email);
+        mainpage.PASSWORD_INPUT.fill(password);
+        mainpage.PASSWORD_CONFIRM_INPUT.fill(password);
+        mainpage.CREATE_ACCOUNT_FORM_BUTTON.click();
     }
 
+    @Step("Validate welcome message for firstName lastName")
     public void validateWelcomeMessage(String firstName, String lastName) {
-        Locator welcomeMessage = page.locator(MainPage.WELCOME_MESSAGE).first();
+        Locator welcomeMessage = mainpage.WELCOME_MESSAGE.first();
         welcomeMessage.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(15000));
         String message = welcomeMessage.textContent().trim();
         Assert.assertEquals(message, String.format(MainPage.WELCOME_TEXT_TEMPLATE, firstName, lastName));
     }
 
-
-
+    @Step("Search for keyword keyword")
     public void searchFor(String keyword) {
-        page.locator(MainPage.SEARCH_INPUT).fill(keyword);
-        page.locator(MainPage.SEARCH_BUTTON).click();
+        mainpage.SEARCH_INPUT.fill(keyword);
+        mainpage.SEARCH_BUTTON.click();
     }
 
+    @Step("Add product to cart")
     public void addToCart() {
         boolean added = false;
-        Locator addBtn = page.locator(MainPage.PRODUCT_ADD_TO_CART_BUTTON);
-        List<Locator> sizes = page.locator(MainPage.SIZE_SWATCH).all();
-        List<Locator> colors = page.locator(MainPage.COLOR_SWATCH).all();
+        Locator addBtn = mainpage.PRODUCT_ADD_TO_CART_BUTTON;
+        List<Locator> sizes = mainpage.SIZE_SWATCH.all();
+        List<Locator> colors = mainpage.COLOR_SWATCH.all();
 
         if (!sizes.isEmpty() && !colors.isEmpty()) {
             for (Locator size : sizes) {
@@ -191,53 +198,55 @@ public class MainPageSteps {
                     color.click();
                     addBtn.click();
                     page.waitForTimeout(2000);
-                    if (!page.locator(MainPage.OUT_OF_STOCK_ERROR).isVisible()) {
+                    if (!mainpage.OUT_OF_STOCK_ERROR.isVisible()) {
                         added = true;
                         break;
                     }
                 }
                 if (added) break;
             }
-            if (!added) System.out.println("no available size/color combinations");
+            if (!added) System.out.println("No available size/color combinations");
         } else {
             addBtn.click();
         }
     }
 
+    @Step("Open mini cart")
     public void openMiniCart() {
-        page.locator(MainPage.MINI_CART_BUTTON).click();
+        mainpage.MINI_CART_BUTTON.click();
     }
 
+    @Step("Validate product price in cart matches product page")
     public void validatePrice() {
-        String priceCart = page.locator(MainPage.CART_PRICE).textContent().trim();
-        String priceProduct = page.locator(MainPage.PRODUCT_PRICE).textContent().trim();
-        Assert.assertEquals(priceCart, priceProduct, "prices do not match");
+        String priceCart = mainpage.CART_PRICE.textContent().trim();
+        String priceProduct = mainpage.PRODUCT_PRICE.textContent().trim();
+        Assert.assertEquals(priceCart, priceProduct, "Prices do not match");
     }
 
+    @Step("Validate product name in cart matches product page")
     public void validateProductName() {
-        String nameCart = page.locator(MainPage.CART_ITEM_NAME).textContent().trim();
-        String nameProduct = page.locator(MainPage.PRODUCT_NAME).textContent().trim();
-        Assert.assertEquals(nameCart, nameProduct, "product names do not match");
+        String nameCart = mainpage.CART_ITEM_NAME.textContent().trim();
+        String nameProduct = mainpage.PRODUCT_NAME.textContent().trim();
+        Assert.assertEquals(nameCart, nameProduct, "Product names do not match");
     }
 
-
-
+    @Step("Get name of first item in cart")
     public String getFirstCartItemName() {
-        Locator firstItemName = page.locator(MainPage.CART_ITEM_NAME).first();
+        Locator firstItemName = mainpage.CART_ITEM_NAME.first();
         return firstItemName.textContent().trim();
     }
 
+    @Step("Remove first item from cart")
     public void removeFirstCartItem() {
-        Locator removeBtn = page.locator(MainPage.CART_ITEM_REMOVE_BUTTON).first();
+        Locator removeBtn = mainpage.CART_ITEM_REMOVE_BUTTON.first();
         removeBtn.click();
-        page.waitForSelector(MainPage.CONFIRM_REMOVE_BUTTON).click();
+        mainpage.CONFIRM_REMOVE_BUTTON.click();
     }
 
+    @Step("Verify that product productName is removed from cart")
     public void verifyProductRemoved(String productName) {
-        Locator cartItems = page.locator(MainPage.CART_ITEM_NAME);
+        Locator cartItems = mainpage.CART_ITEM_NAME;
         Locator matchingItems = cartItems.filter(new Locator.FilterOptions().setHasText(productName));
-        boolean isRemoved = matchingItems.count() == 0;
-        Assert.assertTrue(isRemoved, "the product was not removed from the cart");
+        Assert.assertTrue(matchingItems.count() == 0, "Product was not removed from cart");
     }
-
 }

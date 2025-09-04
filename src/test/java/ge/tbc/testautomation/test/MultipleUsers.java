@@ -1,19 +1,24 @@
 package ge.tbc.testautomation.test;
 
 import com.microsoft.playwright.*;
-import com.microsoft.playwright.assertions.PlaywrightAssertions;
-import com.microsoft.playwright.options.LoadState;
-import com.microsoft.playwright.options.WaitForSelectorState;
+import ge.tbc.testautomation.steps.Playwrightintro.HomePageSteps;
 import org.testng.annotations.*;
+import io.qameta.allure.*;
 
 import java.util.Arrays;
 
+@Epic("Playwright Automation")
+@Feature("Multiple Users Scenarios")
 public class MultipleUsers {
 
     Playwright playwright;
     Browser browser;
+    BrowserContext context;
+    Page page;
+    HomePageSteps steps;
 
     @BeforeClass
+    @Step("set up Playwright, browser, context and page")
     public void setUp() {
         playwright = Playwright.create();
         BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions();
@@ -22,174 +27,72 @@ public class MultipleUsers {
         launchOptions.setSlowMo(500);
         launchOptions.setTimeout(50000);
         browser = playwright.chromium().launch(launchOptions);
+
+        context = browser.newContext();
+        page = context.newPage();
+        steps = new HomePageSteps(page);
     }
 
     @AfterClass
+    @Step("close Playwright context and browser")
     public void tearDownAll() {
+        context.close();
         browser.close();
         playwright.close();
     }
 
-    private Page register() {
-        // new context
-        BrowserContext context = browser.newContext();
-        Page page = context.newPage();
+    @Step("Register an unique user and log in")
+    private String registerUniqueUser() {
+        String email = "user" + System.currentTimeMillis() + "@example.com";
 
-        page.navigate("https://practicesoftwaretesting.com/");
-        page.locator("[data-test='nav-sign-in']").click();
-        page.locator("[data-test='register-link']").click();
+        steps.registerAccount("William", "Bowery", "2000-01-01",
+                "Cornelia Street", "0101", "London", "England", "Georgia",
+                "555555555", email, "StrongPassword8663$");
 
-        // unique email
-        String uniqueEmail = "user" + System.currentTimeMillis() + "@example.com";
-
-        page.fill("[id='first_name']", "William");
-        page.fill("[id='last_name']", "Bowery");
-        page.fill("[id='dob']", "2000-01-01");
-        page.fill("[id='street']", "Cornelia Street");
-        page.fill("[id='postal_code']", "0101");
-        page.fill("[id='city']", "London");
-        page.fill("[id='state']", "England");
-        page.selectOption("[id='country']", "Georgia");
-        page.fill("[id='phone']", "555555555");
-        page.fill("[id='email']", uniqueEmail);
-        page.fill("[id='password']", "StrongPassword8663$");
-        page.click("[data-test='register-submit']");
-        page.waitForURL("https://practicesoftwaretesting.com/auth/login");
-
-        // log in with the same unique email
-        page.fill("[id='email']", uniqueEmail);
-        page.fill("[id='password']", "StrongPassword8663$");
-        page.click("[data-test='login-submit']");
-        page.waitForURL("https://practicesoftwaretesting.com/account");
-
-        return page;
+        steps.login(email, "StrongPassword8663$");
+        return email;
     }
 
-
-    @Test
+    @Test(description = "Add a product to favorites as a new user")
+    @Severity(SeverityLevel.CRITICAL)
+    @Story("Favorites Management")
     public void addToFavoritesIsolated() {
-        Page page = register();
+        registerUniqueUser();
 
-
-        page.locator("[class='navbar-brand']").click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-
-        //add favourites
-        Locator product = page.locator("a[data-test='product-01K3RFN5QT299YE7VXFKRCPJMJ']");
-        product.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(30000));
-        product.click();
-
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-        page.locator("[data-test='add-to-favorites']").click();
-        page.waitForSelector("[data-test='nav-favorites']", new Page.WaitForSelectorOptions().setTimeout(60000));
-        page.locator("[data-test='nav-favorites']").click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-        Locator favProducts = page.locator("div.card[data-test^='favorite-']");
-        PlaywrightAssertions.assertThat(favProducts).hasCount(1);
-
-
-        page.context().close();
+        String[] productHrefs = {"/product/01K3RFN5QT299YE7VXFKRCPJMJ"};
+        steps.addProductsToFavorites(productHrefs);
+        steps.verifyFavoritesCount(1);
     }
 
-    @Test
+    @Test(description = "Remove a favorite product as a new user")
+    @Severity(SeverityLevel.CRITICAL)
+    @Story("Favorites Management")
     public void removeFavoriteIsolated() {
-        Page page = register();
+        registerUniqueUser();
 
-        //add favouties
-        page.locator("[class='navbar-brand']").click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-
-        Locator product = page.locator("a[data-test='product-01K3RFN5QT299YE7VXFKRCPJMJ']");
-        product.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(30000));
-        product.click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-        page.locator("[data-test='add-to-favorites']").click();
-
-        // remove the favorites
-        page.locator("[data-test='nav-favorites']").click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-        Locator favProducts = page.locator("div.card[data-test^='favorite-']");
-        favProducts.first().locator("button[data-test='delete']").click();
-        page.waitForTimeout(1000);
-        PlaywrightAssertions.assertThat(favProducts).hasCount(0);
-
-        page.context().close();
+        String[] productHrefs = {"/product/01K3RFN5QT299YE7VXFKRCPJMJ"};
+        steps.addProductsToFavorites(productHrefs);
+        steps.removeFirstFavorite();
+        steps.verifyFavoritesCount(0);
     }
 
-
-    @Test
+    @Test(description = "filter products by category and verify counts")
+    @Severity(SeverityLevel.NORMAL)
+    @Story("Product Filters")
     public void filterByCategoryIsolated() {
-        Page page = register();
-        //homepage
-        page.locator("[class='navbar-brand']").click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
+        registerUniqueUser();
 
-        //wait and then filter
-        Locator filtersContainer = page.locator("div.checkbox");
-        filtersContainer.first().waitFor(new Locator.WaitForOptions()
-                .setState(WaitForSelectorState.VISIBLE).setTimeout(60000));
-        //hammer filter
-        Locator hammerLabel = page.locator("label:has-text('Hammer')");
-        hammerLabel.waitFor(new Locator.WaitForOptions()
-                .setState(WaitForSelectorState.VISIBLE).setTimeout(60000));
-        hammerLabel.click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-
-        //number of hammers
-        int countHammer = page.locator(".card").count();
-
-        //hand saw filter
-        Locator handSawLabel = page.locator("label:has-text('Hand Saw')");
-        handSawLabel.waitFor(new Locator.WaitForOptions()
-                .setState(WaitForSelectorState.VISIBLE).setTimeout(60000));
-
-        hammerLabel.click();
-        handSawLabel.click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-
-        int countHandsaw = page.locator(".card").count();
-        hammerLabel.click();
-        handSawLabel.click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-
-        int combinedCount = page.locator(".card").count();
-       // System.out.println(combinedCount);
-
-        assert combinedCount <= countHammer + countHandsaw;
-
-        page.context().close();
+        int hammerCount = steps.applyHammerFilter();
+        int sawCount = steps.applyHandSawFilter();
+        steps.verifyCombinedFilterCount(hammerCount, sawCount);
     }
 
-    @Test
+    @Test(description = "verify product tags on a product page")
+    @Severity(SeverityLevel.NORMAL)
+    @Story("Product Details")
     public void tagsTestIsolated() {
-        Page page = register();
+        registerUniqueUser();
 
-        page.locator("[data-test='nav-categories']").click();
-        page.locator("a[href='/category/hand-tools']").click();
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-
-        //hammer filter
-        Locator hammerlabel = page.locator("label:has-text('Hammer')");
-        hammerlabel.waitFor(new Locator.WaitForOptions()
-                .setState(WaitForSelectorState.VISIBLE).setTimeout(60000));
-        hammerlabel.click();
-
-        // thor hammer location
-        Locator thorhammerCard = page.locator("a[data-test='product-01K3RFN5R8GDBBEVR1X1TNQ6B5']");
-        thorhammerCard.waitFor(new Locator.WaitForOptions()
-                .setState(WaitForSelectorState.VISIBLE).setTimeout(60000));
-        thorhammerCard.click();
-
-        page.waitForLoadState(LoadState.NETWORKIDLE);
-
-        // tags validation
-        Locator categoryTag = page.locator("span[aria-label='category']");
-        Locator brandTag = page.locator("span[aria-label='brand']");
-
-        PlaywrightAssertions.assertThat(categoryTag).hasText("Hammer");
-        PlaywrightAssertions.assertThat(brandTag).hasText("ForgeFlex Tools");
-
-        page.context().close();
+        steps.verifyTags("01K3RFN5R8GDBBEVR1X1TNQ6B5", "Hammer", "ForgeFlex Tools");
     }
-
 }
